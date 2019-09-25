@@ -42,84 +42,125 @@
  * @file    bme280_defs.h
  * @date    08 Mar 2019
  * @version 3.3.6
- * @brief
+ * @brief Definitions required for the BME280 sensor driver
  *
  */
 
-/*! @file bme280_defs.h
- * @brief Sensor driver for BME280 sensor
- */
-
-/*!
- * @defgroup BME280 SENSOR API
- * @brief
- */
 #ifndef BME280_DEFS_H_
 #define BME280_DEFS_H_
 
-/********************************************************/
+
 /* header includes */
-#ifdef __KERNEL__
+#if defined(__KERNEL__)
+
+/* (These includes are used for Linux systems) */
 #include <linux/types.h>
 #include <linux/kernel.h>
+
 #else
+
+/* (These includes are used for generic/"bare-metal" systems) */
 #include <stdint.h>
 #include <stddef.h>
+
 #endif
 
-/********************************************************/
-/*! @name       Common macros               */
-/********************************************************/
+
+/**
+ * \defgroup bme280_defs BME280 Definitions
+ *
+ * @{
+ */
+
+
+/**
+ * \name Common Macros
+ *
+ * @{
+ */
 
 #if !defined(UINT8_C) && !defined(INT8_C)
-#define INT8_C(x)   S8_C(x)
-#define UINT8_C(x)  U8_C(x)
+#define INT8_C(x) S8_C(x)
+#define UINT8_C(x) U8_C(x)
 #endif
 
 #if !defined(UINT16_C) && !defined(INT16_C)
-#define INT16_C(x)  S16_C(x)
+#define INT16_C(x) S16_C(x)
 #define UINT16_C(x) U16_C(x)
 #endif
 
 #if !defined(INT32_C) && !defined(UINT32_C)
-#define INT32_C(x)  S32_C(x)
+#define INT32_C(x) S32_C(x)
 #define UINT32_C(x) U32_C(x)
 #endif
 
 #if !defined(INT64_C) && !defined(UINT64_C)
-#define INT64_C(x)  S64_C(x)
+#define INT64_C(x) S64_C(x)
 #define UINT64_C(x) U64_C(x)
 #endif
 
-/**@}*/
-/**\name C standard macros */
+/**
+ * @}
+ */
+
+/**
+ * \name C standard macros
+ *
+ * @{
+ */
+
 #ifndef NULL
 #ifdef __cplusplus
 #define NULL 0
-#else
-#define NULL ((void *) 0)
-#endif
-#endif
+#else	/* __cplusplus */
+#define NULL ((void*)0)
+#endif	/* !__cplusplus */
+#endif	/* !NULL */
 
-/********************************************************/
+/**
+ * @}
+ */
+
+/* ------------------------------------------------------------------------------------------------------------------ *
+ *   DOCUMENTATION SECTION FOR DOXYGEN -- NOT TO BE COMPILED                                                          *
+ * ------------------------------------------------------------------------------------------------------------------ */
+
+#if defined(__DOXYGEN__)
+
+/**
+ * \def BME280_FLOAT_ENABLE
+ * \brief Enables use of floating-point values for sensor data
+ */
+#define BME280_FLOAT_ENABLE
+
+
+#endif	/* defined(__DOXYGEN__) */
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+
 
 #ifndef BME280_FLOAT_ENABLE
-
 /* #define BME280_FLOAT_ENABLE */
 #endif
 
 #ifndef BME280_FLOAT_ENABLE
 #ifndef BME280_64BIT_ENABLE
 #define BME280_64BIT_ENABLE
-#endif
-#endif
+#endif	/* !BME280_64BIT_ENABLE */
+#endif	/* !BME280_FLOAT_ENABLE */
+
+
 
 #ifndef TRUE
-#define TRUE                              UINT8_C(1)
+#define TRUE UINT8_C(1)
 #endif
+
 #ifndef FALSE
-#define FALSE                             UINT8_C(0)
+#define FALSE UINT8_C(0)
 #endif
+
+
 
 /**\name I2C addresses */
 #define BME280_I2C_ADDR_PRIM              UINT8_C(0x76)
@@ -162,21 +203,62 @@
 #define BME280_FORCED_MODE                UINT8_C(0x01)
 #define BME280_NORMAL_MODE                UINT8_C(0x03)
 
-/**\name Macro to combine two 8 bit data's to form a 16 bit data */
-#define BME280_CONCAT_BYTES(msb, lsb)            (((uint16_t)msb << 8) | (uint16_t)lsb)
 
-#define BME280_SET_BITS(reg_data, bitname, data) \
-    ((reg_data & ~(bitname##_MSK)) | \
-     ((data << bitname##_POS) & bitname##_MSK))
-#define BME280_SET_BITS_POS_0(reg_data, bitname, data) \
-    ((reg_data & ~(bitname##_MSK)) | \
-     (data & bitname##_MSK))
+/**
+ * \defgroup bme280_defs_bitops Bit and Byte value operations
+ *
+ * Various macro functions to perform manipulations and operations on bit and byte data.
+ *
+ * @{
+ */
 
-#define BME280_GET_BITS(reg_data, bitname)       ((reg_data & (bitname##_MSK)) >> \
-                                                  (bitname##_POS))
-#define BME280_GET_BITS_POS_0(reg_data, bitname) (reg_data & (bitname##_MSK))
+/**
+ * \brief Macro to combine two 8 bit data's to form a 16 bit data
+ *
+ * \param[in]	msb	The most significant byte (ie: the "upper" 8 bits)
+ * \param[in]	lsb	The least significant byte (ie: the "lower" 8 bits)
+ *
+ * \return An unsigned 16 bit value will be the result of this macro.
+ */
+#define BME280_CONCAT_BYTES(msb, lsb)																				\
+		(((uint16_t)msb << 8) | (uint16_t)lsb)
 
-/**\name Macros for bit masking */
+/**
+ * \brief Set a bit value in a register, utilizing bit shifting
+ */
+#define BME280_SET_BITS(reg_data, bitname, data)																	\
+		((reg_data & ~(bitname##_MSK)) | ((data << bitname##_POS) & bitname##_MSK))
+
+/**
+ * \brief Set a bit value in a register, with the value "in-place"
+ */
+#define BME280_SET_BITS_POS_0(reg_data, bitname, data)																\
+		((reg_data & ~(bitname##_MSK)) | (data & bitname##_MSK))
+
+/**
+ * \brief Get a bit value from a register, utilizing bit shifting
+ */
+#define BME280_GET_BITS(reg_data, bitname)																			\
+		((reg_data & (bitname##_MSK)) >> (bitname##_POS))
+
+/**
+ * \brief Get a bit value from a register, with the value "in-place"
+ */
+#define BME280_GET_BITS_POS_0(reg_data, bitname)																	\
+		(reg_data & (bitname##_MSK))
+
+
+/**
+ * @}
+ */
+
+
+/**
+ * \name Macros for bit masking
+ *
+ * @{
+ */
+
 #define BME280_SENSOR_MODE_MSK      UINT8_C(0x03)
 #define BME280_SENSOR_MODE_POS      UINT8_C(0x00)
 
@@ -195,16 +277,52 @@
 #define BME280_STANDBY_MSK          UINT8_C(0xE0)
 #define BME280_STANDBY_POS          UINT8_C(0x05)
 
-/**\name Sensor component selection macros
- * These values are internal for API implementation. Don't relate this to
- * data sheet.
+/**
+ * @}
  */
+
+
+/**
+ * \name Sensor component selection macros
+ *
+ * \attention These values are internal for API implementation. Don't relate this to data sheet.
+ *
+ * @{
+ */
+
 #define BME280_PRESS                UINT8_C(1)
 #define BME280_TEMP                 UINT8_C(1 << 1)
 #define BME280_HUM                  UINT8_C(1 << 2)
 #define BME280_ALL                  UINT8_C(0x07)
 
-/**\name Settings selection macros */
+/**
+ * @}
+ */
+
+
+/**
+ * \defgroup bme280_defs_setting_values Device Setting Value Definitions
+ *
+ * These are a collection of defined symbols, containing the values for each option available in each of the device
+ * settings:
+ * - Oversampling
+ *   - Temperature
+ *   - Pressure
+ *   - Humidity
+ * - Standby time
+ * - Filter coefficients
+ *
+ * Additionally, there are bitmasks defined for the selection of a specific setting.
+ *
+ * @{
+ */
+
+/**
+ * \name Settings selection macros
+ *
+ * @{
+ */
+
 #define BME280_OSR_PRESS_SEL        UINT8_C(1)
 #define BME280_OSR_TEMP_SEL         UINT8_C(1 << 1)
 #define BME280_OSR_HUM_SEL          UINT8_C(1 << 2)
@@ -212,7 +330,17 @@
 #define BME280_STANDBY_SEL          UINT8_C(1 << 4)
 #define BME280_ALL_SETTINGS_SEL     UINT8_C(0x1F)
 
-/**\name Oversampling macros */
+/**
+ * @}
+ */
+
+
+/**
+ * \name Oversampling macros
+ *
+ * @{
+ */
+
 #define BME280_NO_OVERSAMPLING      UINT8_C(0x00)
 #define BME280_OVERSAMPLING_1X      UINT8_C(0x01)
 #define BME280_OVERSAMPLING_2X      UINT8_C(0x02)
@@ -220,7 +348,17 @@
 #define BME280_OVERSAMPLING_8X      UINT8_C(0x04)
 #define BME280_OVERSAMPLING_16X     UINT8_C(0x05)
 
-/**\name Standby duration selection macros */
+/**
+ * @}
+ */
+
+
+/**
+ * \name Standby duration selection macros
+ *
+ * @{
+ */
+
 #define BME280_STANDBY_TIME_0_5_MS    (0x00)
 #define BME280_STANDBY_TIME_62_5_MS (0x01)
 #define BME280_STANDBY_TIME_125_MS  (0x02)
@@ -230,161 +368,159 @@
 #define BME280_STANDBY_TIME_10_MS   (0x06)
 #define BME280_STANDBY_TIME_20_MS   (0x07)
 
-/**\name Filter coefficient selection macros */
+/**
+ * @}
+ */
+
+
+/**
+ * \name Filter coefficient selection macros
+ *
+ * @{
+ */
+
 #define BME280_FILTER_COEFF_OFF     (0x00)
 #define BME280_FILTER_COEFF_2       (0x01)
 #define BME280_FILTER_COEFF_4       (0x02)
 #define BME280_FILTER_COEFF_8       (0x03)
 #define BME280_FILTER_COEFF_16      (0x04)
 
-/*!
- * @brief Interface selection Enums
+/**
+ * @}
+ */
+
+
+/**
+ * @}
+ */
+
+/**
+ * \brief BME280 Communication Interfaces
  */
 enum bme280_intf {
-    /*! SPI interface */
-    BME280_SPI_INTF,
-
-    /*! I2C interface */
-    BME280_I2C_INTF
+	BME280_SPI_INTF,	/*!< SPI interface */
+	BME280_I2C_INTF		/*!< I²C interface */
 };
 
-/*!
- * @brief Type definitions
+/**
+ * \defgroup bme280_defs_typedefs Type definitions
+ *
+ * @{
  */
+
 typedef int8_t (*bme280_com_fptr_t)(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
 typedef void (*bme280_delay_fptr_t)(uint32_t period);
 
-/*!
- * @brief Calibration data
+/**
+ * @}
  */
-struct bme280_calib_data
-{
-    /**
-     * @ Trim Variables
-     */
 
-    /**@{*/
-    uint16_t dig_T1;
-    int16_t dig_T2;
-    int16_t dig_T3;
-    uint16_t dig_P1;
-    int16_t dig_P2;
-    int16_t dig_P3;
-    int16_t dig_P4;
-    int16_t dig_P5;
-    int16_t dig_P6;
-    int16_t dig_P7;
-    int16_t dig_P8;
-    int16_t dig_P9;
-    uint8_t dig_H1;
-    int16_t dig_H2;
-    uint8_t dig_H3;
-    int16_t dig_H4;
-    int16_t dig_H5;
-    int8_t dig_H6;
-    int32_t t_fine;
 
-    /**@}*/
+/**
+ * \defgroup bme280_defs_structs Data Structures
+ *
+ * @{
+ */
+
+/**
+ * \brief BME280 calibration data
+ *
+ * The BME280 calibration data consists of "trim" variables.
+ */
+struct bme280_calib_data {
+	uint16_t dig_T1;
+	int16_t dig_T2;
+	int16_t dig_T3;
+	uint16_t dig_P1;
+	int16_t dig_P2;
+	int16_t dig_P3;
+	int16_t dig_P4;
+	int16_t dig_P5;
+	int16_t dig_P6;
+	int16_t dig_P7;
+	int16_t dig_P8;
+	int16_t dig_P9;
+	uint8_t dig_H1;
+	int16_t dig_H2;
+	uint8_t dig_H3;
+	int16_t dig_H4;
+	int16_t dig_H5;
+	int8_t dig_H6;
+	int32_t t_fine;
 };
 
-/*!
- * @brief bme280 sensor structure which comprises of temperature, pressure and
- * humidity data
+/**
+ * \brief BME280 Sensor Data
+ *
+ * This is the BME280 sensor data structure, which comprises of:
+ * - temperature
+ * - pressure
+ * - humidity
+ *
+ * \note If the preprocessor symbol \c BME280_FLOAT_ENABLE is defined at the time of compilation, the data will be held
+ *       as double-precision floating-point values; the data will be held as 32 bit integer values otherwise.
  */
+struct bme280_data {
 #ifdef BME280_FLOAT_ENABLE
-struct bme280_data
-{
-    /*! Compensated pressure */
-    double pressure;
-
-    /*! Compensated temperature */
-    double temperature;
-
-    /*! Compensated humidity */
-    double humidity;
-};
+	double pressure;		/*!< Compensated pressure data */
+	double temperature;		/*!< Compensated temperature data */
+	double humidity;		/*!< Compensated humidity data */
 #else
-struct bme280_data
-{
-    /*! Compensated pressure */
-    uint32_t pressure;
-
-    /*! Compensated temperature */
-    int32_t temperature;
-
-    /*! Compensated humidity */
-    uint32_t humidity;
-};
+	uint32_t pressure;		/*!< Compensated pressure data */
+	int32_t temperature;	/*!< Compensated temperature data */
+	uint32_t humidity;		/*!< Compensated humidity data */
 #endif /* BME280_USE_FLOATING_POINT */
-
-/*!
- * @brief bme280 sensor structure which comprises of uncompensated temperature,
- * pressure and humidity data
- */
-struct bme280_uncomp_data
-{
-    /*! un-compensated pressure */
-    uint32_t pressure;
-
-    /*! un-compensated temperature */
-    uint32_t temperature;
-
-    /*! un-compensated humidity */
-    uint32_t humidity;
 };
 
-/*!
- * @brief bme280 sensor settings structure which comprises of mode,
- * oversampling and filter settings.
+/**
+ * \brief BME280 Sensor Uncompensated Data
+ *
+ * This is the BME280 \e "raw" (uncompensated) sensor data structure, which comprises of:
+ * - temperature
+ * - pressure
+ * - humidity
  */
-struct bme280_settings
-{
-    /*! pressure oversampling */
-    uint8_t osr_p;
-
-    /*! temperature oversampling */
-    uint8_t osr_t;
-
-    /*! humidity oversampling */
-    uint8_t osr_h;
-
-    /*! filter coefficient */
-    uint8_t filter;
-
-    /*! standby time */
-    uint8_t standby_time;
+struct bme280_uncomp_data {
+	uint32_t pressure;		/*!< Uncompensated pressure data */
+	int32_t temperature;	/*!< Uncompensated temperature data */
+	uint32_t humidity;		/*!< Uncompensated humidity data */
 };
 
-/*!
- * @brief bme280 device structure
+/**
+ * \brief BME280 sensor settings structure
+ *
+ * This is the BME280 sensor settings structure, which comprises of:
+ * - mode
+ * - oversampling settings
+ * - filter settings
+ * - standby time
  */
-struct bme280_dev
-{
-    /*! Chip Id */
-    uint8_t chip_id;
-
-    /*! Device Id */
-    uint8_t dev_id;
-
-    /*! SPI/I2C interface */
-    enum bme280_intf intf;
-
-    /*! Read function pointer */
-    bme280_com_fptr_t read;
-
-    /*! Write function pointer */
-    bme280_com_fptr_t write;
-
-    /*! Delay function pointer */
-    bme280_delay_fptr_t delay_ms;
-
-    /*! Trim data */
-    struct bme280_calib_data calib_data;
-
-    /*! Sensor settings */
-    struct bme280_settings settings;
+struct bme280_settings {
+	uint8_t osr_p;			/*!< pressure data oversampling setting */
+	uint8_t osr_t;			/*!< temperature data oversampling setting */
+	uint8_t osr_h;			/*!< humidity data oversampling setting */
+	uint8_t filter;			/*!< filter coefficient */
+	uint8_t standby_time;	/*!< standby time */
 };
 
-#endif /* BME280_DEFS_H_ */
-/** @}*/
-/** @}*/
+/*! \brief BME280 device structure */
+struct bme280_dev {
+	uint8_t chip_id;						/*!< Chip ID */
+	uint8_t dev_id;							/*!< Device ID */
+	enum bme280_intf intf;					/*!< Sensor interface */
+	bme280_com_fptr_t read;					/*!< Read function pointer */
+	bme280_com_fptr_t write;				/*!< Write function pointer */
+	bme280_delay_fptr_t delay_ms;			/*!< Delay function pointer */
+	struct bme280_calib_data calib_data;	/*!< Trim/calibration data */
+	struct bme280_settings settings;		/*!< Sensor settings */
+};
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#endif	/* !BME280_DEFS_H_ */

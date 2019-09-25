@@ -42,27 +42,32 @@
  * @file    bme280.h
  * @date    08 Mar 2019
  * @version 3.3.6
- * @brief
+ * @brief Sensor driver API definitions for BME280 sensor
  *
  */
 
-/*! @file bme280.h
- * @brief Sensor driver for BME280 sensor
- */
-
-/*!
- * @defgroup BME280 SENSOR API
- */
 #ifndef BME280_H_
 #define BME280_H_
 
-/*! CPP guard */
+
+/**
+ * \defgroup bme280_sensor_api BME280 Sensor API
+ *
+ * These APIs allow for control of the \b BME280 environmental data sensor, as well as readout of the sensed data.
+ *
+ * @{
+ */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
 /* Header includes */
 #include "bme280_defs.h"
+
+
 
 /*!
  *  @brief This API is the entry point.
@@ -70,8 +75,14 @@ extern "C" {
  *
  *  @param[in,out] dev : Structure instance of bme280_dev
  *
- *  @return Result of API execution status
- *  @retval zero -> Success / +ve value -> Warning / -ve value -> Error
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_init(struct bme280_dev *dev);
 
@@ -85,8 +96,14 @@ int8_t bme280_init(struct bme280_dev *dev);
  * @param[in] len : No of bytes of data to write..
  * @param[in] dev : Structure instance of bme280_dev.
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_set_regs(uint8_t *reg_addr, const uint8_t *reg_data, uint8_t len, const struct bme280_dev *dev);
 
@@ -98,33 +115,66 @@ int8_t bme280_set_regs(uint8_t *reg_addr, const uint8_t *reg_data, uint8_t len, 
  * @param[in] len : No of bytes of data to be read.
  * @param[in] dev : Structure instance of bme280_dev.
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_get_regs(uint8_t reg_addr, uint8_t *reg_data, uint16_t len, const struct bme280_dev *dev);
 
-/*!
- * @brief This API sets the oversampling, filter and standby duration
- * (normal mode) settings in the sensor.
+/**
+ * \brief Set the oversampling, filter, and standby duration settings
  *
- * @param[in] dev : Structure instance of bme280_dev.
- * @param[in] desired_settings : Variable used to select the settings which
- * are to be set in the sensor.
+ * This API sets the oversampling, filter and standby duration (normal mode) settings in the sensor.
  *
- * @note : Below are the macros to be used by the user for selecting the
- * desired settings. User can do OR operation of these macros for configuring
- * multiple settings.
+ * \param[in]	desired_settings	Variable used to select the settings which are to be set in the sensor
+ * \param[in]	dev					Structure instance of \c bme280_dev
  *
- * Macros         |   Functionality
- * -----------------------|----------------------------------------------
- * BME280_OSR_PRESS_SEL    |   To set pressure oversampling.
- * BME280_OSR_TEMP_SEL     |   To set temperature oversampling.
- * BME280_OSR_HUM_SEL    |   To set humidity oversampling.
- * BME280_FILTER_SEL     |   To set filter setting.
- * BME280_STANDBY_SEL  |   To set standby duration setting.
+ * \note \parblock
+ * Listed in the table below are the macros to be used by the user for selecting the desired settings. The user can set
+ * multiple settings by performing a logical bitwise \b OR operation of the macros for the value of \p desired_settings
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
+ * | Macro Name           | Macro Functionality          |
+ * |----------------------|------------------------------|
+ * | BME280_OSR_PRESS_SEL | Set pressure oversampling    |
+ * | BME280_OSR_TEMP_SEL  | Set temperature oversampling |
+ * | BME280_OSR_HUM_SEL   | Set humidity oversampling    |
+ * | BME280_FILTER_SEL    | Set filter setting           |
+ * | BME280_STANDBY_SEL   | Set standby duration setting |
+ *
+ * As an example, if one were to want to set the oversampling settings, but not the filter or standby duration:
+ * \code
+ * ...
+ *
+ * dev->settings.osr_h = BME280_OVERSAMPLING_1X;
+ * dev->settings.osr_p = BME280_OVERSAMPLING_16X;
+ * dev->settings.osr_t = BME280_OVERSAMPLING_2X;
+ *
+ * uint8_t settings_sel = (BME280_OSR_PRESS_SEL | BME280_OSR_TEMP_SEL | BME280_OSR_HUM_SEL | BME280_FILTER_SEL);
+ *
+ * if (bme280_set_sensor_settings(settings_sel, dev) != 0) {
+ *     LOG_ERROR("Setting sensor settings failed.");
+ * } else {
+ *     LOG_INFO("Setting sensor settings OK.");
+ * }
+ *
+ * ...
+ * \endcode
+ * \endparblock
+ *
+ *
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_set_sensor_settings(uint8_t desired_settings, const struct bme280_dev *dev);
 
@@ -134,8 +184,14 @@ int8_t bme280_set_sensor_settings(uint8_t desired_settings, const struct bme280_
  *
  * @param[in,out] dev : Structure instance of bme280_dev.
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_get_sensor_settings(struct bme280_dev *dev);
 
@@ -151,8 +207,14 @@ int8_t bme280_get_sensor_settings(struct bme280_dev *dev);
  *     1                | BME280_FORCED_MODE
  *     3                | BME280_NORMAL_MODE
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_set_sensor_mode(uint8_t sensor_mode, const struct bme280_dev *dev);
 
@@ -168,8 +230,14 @@ int8_t bme280_set_sensor_mode(uint8_t sensor_mode, const struct bme280_dev *dev)
  *     1                | BME280_FORCED_MODE
  *     3                | BME280_NORMAL_MODE
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_get_sensor_mode(uint8_t *sensor_mode, const struct bme280_dev *dev);
 
@@ -178,8 +246,14 @@ int8_t bme280_get_sensor_mode(uint8_t *sensor_mode, const struct bme280_dev *dev
  *
  * @param[in] dev : Structure instance of bme280_dev.
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
+ *\return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_soft_reset(const struct bme280_dev *dev);
 
@@ -201,8 +275,14 @@ int8_t bme280_soft_reset(const struct bme280_dev *dev);
  * @param[out] comp_data : Structure instance of bme280_data.
  * @param[in] dev : Structure instance of bme280_dev.
  *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
 int8_t bme280_get_sensor_data(uint8_t sensor_comp, struct bme280_data *comp_data, struct bme280_dev *dev);
 
@@ -229,16 +309,24 @@ void bme280_parse_sensor_data(const uint8_t *reg_data, struct bme280_uncomp_data
  * and/or humidity data.
  * @param[in] calib_data : Pointer to the calibration data structure.
  *
- * @return Result of API execution status.
- * @retval zero -> Success / -ve value -> Error
+ * \return Result of API execution status
+ * \retval	0	Success
+ * \retval	-1	ERROR: null pointer
+ * \retval	-2	ERROR: device not found
+ * \retval	-3	ERROR: invalid length
+ * \retval	-4	ERROR: communication failure
+ * \retval	-5	ERROR: sleep mode failure
+ * \retval	1	WARNING: invalid oversampling macro
  */
-int8_t bme280_compensate_data(uint8_t sensor_comp,
-                              const struct bme280_uncomp_data *uncomp_data,
-                              struct bme280_data *comp_data,
-                              struct bme280_calib_data *calib_data);
+int8_t bme280_compensate_data(uint8_t sensor_comp, const struct bme280_uncomp_data *uncomp_data, struct bme280_data *comp_data, struct bme280_calib_data *calib_data);
+
+
 
 #ifdef __cplusplus
 }
-#endif /* End of CPP guard */
-#endif /* BME280_H_ */
-/** @}*/
+#endif
+
+
+#endif	/* !BME280_H_ */
+
+/** @} */
